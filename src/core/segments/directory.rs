@@ -34,6 +34,44 @@ impl DirectorySegment {
             result.to_string()
         }
     }
+
+    /// Extract the second folder name from a path
+    /// For Windows: D:\javaCode\zm\d3 -> "zm" (skip drive letter)
+    /// For Unix: /home/user/project -> "user" (skip leading empty string)
+    fn extract_secondary_folder(path: &str) -> String {
+        // Determine path type and split
+        let is_windows = path.contains('\\');
+        let parts: Vec<&str> = if is_windows {
+            path.split('\\').collect()
+        } else {
+            path.split('/').collect()
+        };
+
+        // For Windows paths, skip the drive letter (e.g., "D:")
+        // For Unix paths, skip the leading empty string
+        let start_index = if is_windows {
+            // Check if first part is a drive letter (ends with ':')
+            if parts.first().map(|p| p.ends_with(':')).unwrap_or(false) {
+                2 // Skip drive letter and first folder
+            } else {
+                1 // Just skip first folder
+            }
+        } else {
+            // Unix: skip leading empty string and first folder
+            if parts.first().map(|p| p.is_empty()).unwrap_or(false) {
+                2
+            } else {
+                1
+            }
+        };
+
+        // Get the second folder if it exists
+        if start_index < parts.len() {
+            parts[start_index].to_string()
+        } else {
+            String::new()
+        }
+    }
 }
 
 impl Segment for DirectorySegment {
@@ -42,6 +80,7 @@ impl Segment for DirectorySegment {
 
         // Handle cross-platform path separators manually for better compatibility
         let dir_name = Self::extract_directory_name(current_dir);
+        let proj_name = Self::extract_secondary_folder(current_dir);
 
         // Store the full path in metadata for potential use
         let mut metadata = HashMap::new();
@@ -49,7 +88,7 @@ impl Segment for DirectorySegment {
 
         Some(SegmentData {
             primary: dir_name,
-            secondary: String::new(),
+            secondary: proj_name,
             metadata,
         })
     }
