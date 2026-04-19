@@ -85,9 +85,9 @@ impl MainMenu {
                         self.should_quit = true;
                     }
                     KeyCode::Up => {
-                        if self.selected_item > 0 {
-                            self.selected_item -= 1;
-                        }
+                        if self.selected_item > 0 => {
+                             self.selected_item -= 1;
+                         }
                     }
                     KeyCode::Down => {
                         let menu_items = self.get_menu_items();
